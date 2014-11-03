@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+import os, sys, json, imp
+
+config = {}
+
+DEFAULT_MODPATH = "./modules/"
+
+commands = {}
+
+def load_config():
+	global config
+
+	try:
+		with open("~/.medman/config.json") as c:
+			config = json.loads(c.read())
+	except:
+		print("No config file ~/.medman/config.json found! Using defaults...")
+
+def load_modules():
+	def load(path):
+		global commands
+
+		mods = []
+		for f in os.listdir(path):
+			if f[-3:] == ".py":
+				file, pathname, desc = imp.find_module(path + "/" + f[-3])
+				mods.append(imp.load_module(f[:-3], file, pathname, desc))
+
+		for m in mods:
+			commands = {}
+			
+			for d in dir(m):
+				if d.startswith("medman_"):
+					commands[d.replace("medman_","")] = m.d # TODO: Check for conflictions?
+
+
+	if "modulepath" in config.keys():
+		load(config["modulepath"])
+	else:
+		load(DEFAULT_MODPATH)
+
+
+def main():
+	# TODO: Handle more in this?
+	commands[sys.argv[2]](config, commands, sys.argv[3:])
+
+
+
+if __name__ == "__main__":
+	load_config()
+	load_modules()
+	main()
