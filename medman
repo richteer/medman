@@ -12,7 +12,7 @@ def load_config():
 	global config
 
 	try:
-		with open("~/.medman/config.json") as c:
+		with open(os.environ["HOME"] + "/.medman/config.json", "r") as c:
 			config = json.loads(c.read())
 	except:
 		print("No config file ~/.medman/config.json found! Using defaults...")
@@ -24,7 +24,7 @@ def load_modules():
 		mods = []
 		for f in os.listdir(path):
 			if f[-3:] == ".py":
-				file, pathname, desc = imp.find_module(path + "/" + f[-3])
+				file, pathname, desc = imp.find_module(path + "/" + f[:-3])
 				mods.append(imp.load_module(f[:-3], file, pathname, desc))
 
 		for m in mods:
@@ -32,7 +32,7 @@ def load_modules():
 			
 			for d in dir(m):
 				if d.startswith("medman_"):
-					commands[d.replace("medman_","")] = m.d # TODO: Check for conflictions?
+					commands[d.replace("medman_","")] = eval("m." + d) # TODO: Check for conflictions?
 
 
 	if "modulepath" in config.keys():
@@ -43,7 +43,11 @@ def load_modules():
 
 def main():
 	# TODO: Handle more in this?
-	commands[sys.argv[2]](config, commands, sys.argv[3:])
+
+	if len(sys.argv) < 2:
+		print(commands.keys()) # TODO: Make default output prettier
+		exit(0)
+	commands[sys.argv[1]](config, commands, sys.argv[2:])
 
 
 
