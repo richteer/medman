@@ -7,6 +7,7 @@ config = {}
 DEFAULT_MODPATH = "./modules/"
 
 commands = {}
+hooks = {}
 
 def load_config():
 	global config
@@ -27,15 +28,24 @@ def load_config():
 	if fail:
 		exit(1)
 
+# TODO: Write this, verify the proper modules exist
+def check_module(module):
+	return True
+
+
 def load_modules():
 	def load(path):
 		global commands
+		global hooks
+		global config
 
 		mods = []
 		for f in os.listdir(path):
 			if f[-3:] == ".py":
 				file, pathname, desc = imp.find_module(path + "/" + f[:-3])
-				mods.append(imp.load_module(f[:-3], file, pathname, desc))
+				mod = imp.load_module(f[:-3], file, pathname, desc)
+				if check_module(mod):
+					mods.append(mod)
 
 		for m in mods:
 			commands = {}
@@ -43,6 +53,12 @@ def load_modules():
 			for d in dir(m):
 				if d.startswith("medman_"):
 					commands[d.replace("medman_","")] = eval("m." + d) # TODO: Check for conflictions?
+				elif d == "hooks":
+					for k in m.hooks.keys():
+						if k not in hooks.keys():
+							hooks[k] = []
+						hooks[k].append(m.hooks[k])
+		config["hooks"] = hooks
 
 
 	if "modulepath" in config.keys():

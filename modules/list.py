@@ -1,5 +1,9 @@
 import os,json
 
+hooks = {
+	"helpshort":"\tlist: Display a list of names, or a list of files for a name"
+}
+
 def medman_list(config, commands, args):
 	# TODO: Error-check that config has a base registration path
 
