@@ -15,7 +15,17 @@ def load_config():
 		with open(os.environ["HOME"] + "/.medman/config.json", "r") as c:
 			config = json.loads(c.read())
 	except:
-		print("No config file ~/.medman/config.json found! Using defaults...")
+		print("No config file ~/.medman/config.json found!")
+		exit(1)
+
+	# Define required data in the config file here
+	fail = False
+	if "path" not in config.keys():
+		print("Path not specified in config file!")
+		fail = True
+
+	if fail:
+		exit(1)
 
 def load_modules():
 	def load(path):
