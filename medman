@@ -16,6 +16,14 @@ class Medman():
 	hooks = {}
 	modules = {}
 
+	def call_hooks(self, hookname, args=[]):
+		if hookname not in self.hooks:
+			return
+
+		for h in self.hooks[hookname]:
+			h[1](*args)
+
+
 	# Get a filename from a name
 	def name_to_file(self, name):
 		with open(self.config["path"] + "/index.json", "r") as f:
@@ -30,9 +38,9 @@ class Medman():
 	def write_file(self, filename, js):
 		# TODO: Call hooks here
 		with open(self.config["path"] + "/" + filename, "w") as f:
-			f.write(json.dumps(js, indent=4))
-
-
+			f.write(json.dumps(js, indent=4, sort_keys=True))
+	
+		self.call_hooks("postwritefile", args=[filename])
 
 	def read_file(self, filename):
 		# TODO: Call hooks here	
@@ -65,7 +73,7 @@ class Medman():
 		data[name] = category + name
 
 		with open(self.config["path"] + "index.json", "w") as f:
-			f.write(json.dumps(data, indent=4))		
+			f.write(json.dumps(data, indent=4, sort_keys=True))		
 
 		os.mkdir(self.config["path"] + category + "/" + name)
 
@@ -110,7 +118,7 @@ class Medman():
 
 	def _load_hook(self, mod):
 		for k in mod.hooks.keys():
-			if f not in self.hooks.keys():
+			if k not in self.hooks.keys():
 				self.hooks[k] = []
 			self.hooks[k] += mod.hooks[k]
 			self.hooks[k].sort()
@@ -118,12 +126,11 @@ class Medman():
 
 	# Load ALL hooks (as dynamic hooks loading is probably pointless?
 	def load_hooks(self):
-		for f in os.listdir("hooks/"):
-			if f[-2:] == "py":
+		for f in os.listdir("./hooks/"):
+			if f[-2:] != "py" or f.startswith('.'):
 				continue
 			file, pathname, desc = imp.find_module("hooks/" + f[:-3])
 			mod = imp.load_module(f[:-3], file, pathname, desc)
-
 			if "hooks" not in dir(mod):
 				del mod
 				continue
