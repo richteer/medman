@@ -169,7 +169,7 @@ class Medman():
 
 	def run_mod(self, name, args):
 		if name not in self.modules:
-			if not self.load(name):
+			if not self._load(name):
 				print("Unknown module '{}'".format(name))
 				return False
 
@@ -177,7 +177,8 @@ class Medman():
 
 
 
-	def load(self, name):
+	# Load a module
+	def _load(self, name):
 	
 		file, pathname, desc = imp.find_module(modpath + "/" + name)
 		mod = imp.load_module(name, file, pathname, desc)
@@ -189,6 +190,7 @@ class Medman():
 	
 		return True
 	
+	# Create the category directory path
 	def create_categories(self, categories):
 		self.call_hooks("precreatecategories", args=[categories])
 
@@ -196,6 +198,7 @@ class Medman():
 
 		self.call_hooks("postcreatecategories", args=[categories])
 
+	# Create a name directory and initialize the json file
 	def create_name(self, name, categories=""):
 		self.call_hooks("precreatename", args=[name, categories])
 
@@ -205,6 +208,16 @@ class Medman():
 		self.index_add(name, categories)
 
 		self.call_hooks("postcreatename", args=[name, categories])
+
+	# Write any changes to the config dictionary back to the config file
+	def write_config(self):
+		self.call_hooks("prewriteconfig", args=[])
+
+		with open(os.environ["HOME"] + "/.medman/config.json", "w") as c:
+			c.write(json.dumps(self.config, indent=4, sort_keys=True))
+
+		self.call_hooks("postwriteconfig", args=[])
+
 
 
 def main(med):
