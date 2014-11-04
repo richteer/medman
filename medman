@@ -3,7 +3,7 @@
 # TODO: Need to add in an initialization checking engine
 
 import os, sys, json, imp
-
+import logging as log
 
 DEFAULT_MODPATH = "./modules/"
 
@@ -17,6 +17,7 @@ class Medman():
 	modules = {}
 
 	def call_hooks(self, hookname, args=[]):
+		log.debug("Calling hook '{}'".format(hookname))
 		if hookname not in self.hooks:
 			return
 
@@ -213,6 +214,7 @@ if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("Need some arguments")
 		exit(0)
+	log.basicConfig(level=log.WARNING)
 	med = Medman()
 	med.load_config()
 	med.load_hooks()
