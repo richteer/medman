@@ -190,23 +190,25 @@ class Medman():
 		return True
 	
 	def create_categories(self, categories):
-		# TODO: Hooks, here
+		self.call_hooks("precreatecategories", args=[categories])
 
 		os.makedirs(self.config["path"] + categories, exist_ok=True)
 
+		self.call_hooks("postcreatecategories", args=[categories])
+
 	def create_name(self, name, categories=""):
-		# TODO: Hooks, here
+		self.call_hooks("precreatename", args=[name, categories])
 
 		if categories != "" and categories[-1] != "/":
 			categories += "/"
 
 		self.index_add(name, categories)
-		
+
+		self.call_hooks("postcreatename", args=[name, categories])
 
 
 def main(med):
-	# TODO: Handle more in this?
-	#commands[sys.argv[1]](med, sys.argv[2:])
+	# TODO: Handle meta --args here
 	med.run_mod(sys.argv[1], sys.argv[2:])
 
 
