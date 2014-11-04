@@ -90,6 +90,22 @@ class Medman():
 
 		self.write_name(name, {"name":name,"files":[]})
 
+	# Remove a name from the index (does not remove the name completely)
+	def index_remove(self, name):
+		self.call_hooks("preindexremove", args=[name])
+
+		with open(self.config["path"] + "index.json", "r") as f:
+			data = json.loads(f.read())
+
+		if name in data.keys():
+			data.pop(name)
+		else:
+			print("Name '{}' not in index!".format(name))
+			return False
+
+		self.call_hooks("postindexremove", args=[name])
+		return True
+
 	# Create a new category path
 	def new_category(self, name):
 		pass
