@@ -75,8 +75,9 @@ class Medman():
 
 		return data
 
+	# Add a name, category pair to the index
 	def index_add(self, name, category):
-		# TODO: Hooks?
+		self.call_hooks("preindexadd", args=[name, category])
 	
 		with open(self.config["path"] + "index.json", "r") as f:
 			data = json.loads(f.read())
@@ -89,6 +90,7 @@ class Medman():
 		os.mkdir(self.config["path"] + category + "/" + name)
 
 		self.write_name(name, {"name":name,"files":[]})
+		self.call_hooks("postindexadd", args=[name, category])
 
 	# Remove a name from the index (does not remove the name completely)
 	def index_remove(self, name):
