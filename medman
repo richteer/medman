@@ -21,7 +21,7 @@ class Medman():
 			return
 
 		for h in self.hooks[hookname]:
-			h[1](*args)
+			h[1](med, *args)
 
 
 	# Get a filename from a name
@@ -36,33 +36,44 @@ class Medman():
 
 	# Handle the reading and writing to a json file
 	def write_file(self, filename, js):
-		# TODO: Call hooks here
+		self.call_hooks("prewritefile", args=[filename, js])
+
 		with open(self.config["path"] + "/" + filename, "w") as f:
 			f.write(json.dumps(js, indent=4, sort_keys=True))
 	
 		self.call_hooks("postwritefile", args=[filename])
 
 	def read_file(self, filename):
-		# TODO: Call hooks here	
+		self.call_hooks("prereadfile", args=[filename])
 	
 		with open(self.config["path"] + "/" + filename, "r") as f:
 			data = json.loads(f.read())
+
+		self.call_hooks("postreadfile", args=[filename, data])
 		return data
+
 
 	# Abstraction to handle reading and writing to a Name
 	def write_name(self, name, js):
-		# TODO: Call hooks here
-		
+		self.call_hooks("prewritename", args=[name, js])
+
 		s = self.name_to_file(name)
 		if s:
 			self.write_file(s, js)
 
+		self.call_hooks("postwritename", args=[name])
+
 	def read_name(self, name):
-		# TODO: Call hooks here
+		self.call_hooks("prereadname", args=[name])
 
 		s = self.name_to_file(name)
+		data = None
 		if s:
-			return self.read_file(s)
+			data = self.read_file(s)
+
+		self.call_hooks("postwritename", args=[name,data])
+
+		return data
 
 	def index_add(self, name, category):
 		# TODO: Hooks?
