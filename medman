@@ -1,83 +1,135 @@
 #!/usr/bin/env python3
 
+# TODO: Need to add in an initialization checking engine
+
 import os, sys, json, imp
 
-config = {}
 
 DEFAULT_MODPATH = "./modules/"
 
-commands = {}
-hooks = {}
+modpath = DEFAULT_MODPATH
 
-def load_config():
-	global config
-
-	try:
-		with open(os.environ["HOME"] + "/.medman/config.json", "r") as c:
-			config = json.loads(c.read())
-	except:
-		print("No config file ~/.medman/config.json found!")
-		exit(1)
-
-	# Define required data in the config file here
-	fail = False
-	if "path" not in config.keys():
-		print("Path not specified in config file!")
-		fail = True
-
-	if fail:
-		exit(1)
-
-# TODO: Write this, verify the proper modules exist
-def check_module(module):
-	return True
+med = None
 
 
-def load_modules():
-	def load(path):
-		global commands
-		global hooks
-		global config
+class Medman():
+	config = {}
+	commands = {}
+	hooks = {}
+	modules = {}
 
-		mods = []
-		for f in os.listdir(path):
-			if f[-3:] == ".py":
-				file, pathname, desc = imp.find_module(path + "/" + f[:-3])
-				mod = imp.load_module(f[:-3], file, pathname, desc)
-				if check_module(mod):
-					mods.append(mod)
+	# Get a filename from a name
+	def name_to_file(self, name):
+		with open(self.config["path"] + "/index.json", "r") as f:
+			names = json.loads(f.read())
+		if name in names.keys():
+			return names[name] + "/" + name + ".json"
+		else:
+			print("Could not find name '{}'".format(name))
+			return None
 
-		for m in mods:
-			commands = {}
-			
-			for d in dir(m):
-				if d.startswith("medman_"):
-					commands[d.replace("medman_","")] = eval("m." + d) # TODO: Check for conflictions?
-				elif d == "hooks":
-					for k in m.hooks.keys():
-						if k not in hooks.keys():
-							hooks[k] = []
-						hooks[k].append(m.hooks[k])
-		config["hooks"] = hooks
+	# Handle the reading and writing to a json file
+	def write_file(self, filename, js):
+		# TODO: Call hooks here
+		with open(self.config["path"] + "/" + filename, "w") as f:
+			f.write(json.dumps(js, indent=4))
 
 
-	if "modulepath" in config.keys():
-		load(config["modulepath"])
-	else:
-		load(DEFAULT_MODPATH)
+
+	def read_file(self, filename):
+		# TODO: Call hooks here	
+	
+		with open(self.config["path"] + "/" + filename, "r") as f:
+			data = json.loads(f.read())
+		return data
+
+	# Abstraction to handle reading and writing to a Name
+	def write_name(self, name, js):
+		# TODO: Call hooks here
+		
+		s = self.name_to_file(name)
+		if s:
+			self.write_file(s, js)
+
+	def read_name(self, name):
+		# TODO: Call hooks here
+
+		s = self.name_to_file(name)
+		if s:
+			return self.read_file(s)
+
+	# Create a new category path
+	def new_category(self, name):
+		pass
+
+	def get_names(self):
+		# TODO: Call hooks?
+		
+		with open(self.config["path"] + "/" + "index.json", "r") as f:
+			data = json.loads(f.read())
+
+		# TODO: Error check this
+		return list(data.keys())
 
 
-def main():
+	# Configuration json file loading
+	def load_config(self):
+	
+		try:
+			# TODO: Remove hard coding?
+			with open(os.environ["HOME"] + "/.medman/config.json", "r") as c:
+				self.config = json.loads(c.read())
+		except:
+			print("No config file ~/.medman/config.json found!")
+			exit(1)
+
+		# Define required data in the config file here
+		fail = False
+		if "path" not in self.config.keys():
+			print("Path not specified in config file!")
+			fail = True
+
+		if fail:
+			exit(1)
+
+		# OPTIMIZE: Handle ~ -> /home/user better
+		self.config["path"] = self.config["path"].replace("~", os.environ["HOME"] + "/")
+
+
+	def run_mod(self, name, args):
+		if name not in self.modules:
+			if not self.load(name):
+				print("Unknown module '{}'".format(name))
+				return False
+
+		return self.modules[name](med, args)
+
+
+
+	def load(self, name):
+		global modules
+	
+		file, pathname, desc = imp.find_module(modpath + "/" + name)
+		mod = imp.load_module(name, file, pathname, desc)
+	
+		if "medman_" + name not in dir(mod):
+			return False
+	
+		self.modules[name] = eval("mod.medman_" + name)
+	
+		return True
+	
+
+def main(med):
 	# TODO: Handle more in this?
-
-	if len(sys.argv) < 2:
-		print(commands.keys()) # TODO: Make default output prettier
-		exit(0)
-	commands[sys.argv[1]](config, commands, sys.argv[2:])
-
+	#commands[sys.argv[1]](med, sys.argv[2:])
+	med.run_mod(sys.argv[1], sys.argv[2:])
 
 
 if __name__ == "__main__":
-	load_config()
-	load_modules()
-	main()
+	if len(sys.argv) < 2:
+		print("Need some arguments")
+		exit(0)
+	med = Medman()
+	med.load_config()
+	main(med)

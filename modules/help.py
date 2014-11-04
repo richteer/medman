@@ -11,7 +11,7 @@ def print_help():
 Registered commands:''')
 
 
-def medman_help(config, commands, args):
+def medman_help(med, args):
 	if len(args) == 0:
 		print_help()
 		if "helpshort" in config["hooks"].keys():

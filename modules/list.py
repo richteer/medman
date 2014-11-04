@@ -4,27 +4,21 @@ hooks = {
 	"helpshort":"\tlist: Display a list of names, or a list of files for a name"
 }
 
-def medman_list(config, commands, args):
+def medman_list(med, args):
 	# TODO: Error-check that config has a base registration path
 
 
 	# Default action: Display all registered names
 	if len(args) == 0:
-		with open(config["path"].replace("~",os.environ["HOME"]) + "/index.json","r") as f: # TODO: Clean up the stupid $HOME issue
-			ls = json.loads(f.read())["media"]
+		for l in med.get_names():
+			print(l)
 
-		for l in ls:
-			print(l["name"])
+		return True
 
-		return
 
 	# Otherwise, find the name specified, and display its sublist
-	with open(config["path"].replace("~", os.environ["HOME"]) + "/index.json", "r") as f:
-		ls = json.loads(f.read())["media"]
-
-	for l in ls:
-		if l["name"] == args[0]:
-			print(l["path"]) # TODO: Replace with files known to this
-			return
-
-	print("Title '{}' not registered!".format(args[0]))
+	s = med.name_to_file(args[0])
+	if s:
+		print(s)
+	else:
+		print("Title '{}' not registered!".format(args[0]))
