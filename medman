@@ -11,10 +11,8 @@ modpath = DEFAULT_MODPATH
 
 med = None
 
-
 class Medman():
 	config = {}
-	commands = {}
 	hooks = {}
 	modules = {}
 
@@ -58,6 +56,21 @@ class Medman():
 		if s:
 			return self.read_file(s)
 
+	def index_add(self, name, category):
+		# TODO: Hooks?
+	
+		with open(self.config["path"] + "index.json", "r") as f:
+			data = json.loads(f.read())
+
+		data[name] = category + name
+
+		with open(self.config["path"] + "index.json", "w") as f:
+			f.write(json.dumps(data, indent=4))		
+
+		os.mkdir(self.config["path"] + category + "/" + name)
+
+		self.write_name(name, {"name":name,"files":[]})
+
 	# Create a new category path
 	def new_category(self, name):
 		pass
@@ -93,7 +106,7 @@ class Medman():
 			exit(1)
 
 		# OPTIMIZE: Handle ~ -> /home/user better
-		self.config["path"] = self.config["path"].replace("~", os.environ["HOME"] + "/")
+		self.config["path"] = self.config["path"].replace("~", os.environ["HOME"] + "/") + "/" 
 
 
 	def run_mod(self, name, args):
@@ -119,6 +132,20 @@ class Medman():
 	
 		return True
 	
+	def create_categories(self, categories):
+		# TODO: Hooks, here
+
+		os.makedirs(self.config["path"] + categories, exist_ok=True)
+
+	def create_name(self, name, categories=""):
+		# TODO: Hooks, here
+
+		if categories != "" and categories[-1] != "/":
+			categories.append("/") 
+
+		self.index_add(name, categories)
+		
+
 
 def main(med):
 	# TODO: Handle more in this?
