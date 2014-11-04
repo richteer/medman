@@ -108,6 +108,27 @@ class Medman():
 		# OPTIMIZE: Handle ~ -> /home/user better
 		self.config["path"] = self.config["path"].replace("~", os.environ["HOME"] + "/") + "/" 
 
+	def _load_hook(self, mod):
+		for k in mod.hooks.keys():
+			if f not in self.hooks.keys():
+				self.hooks[k] = []
+			self.hooks[k] += mod.hooks[k]
+			self.hooks[k].sort()
+
+
+	# Load ALL hooks (as dynamic hooks loading is probably pointless?
+	def load_hooks(self):
+		for f in os.listdir("hooks/"):
+			if f[-2:] == "py":
+				continue
+			file, pathname, desc = imp.find_module("hooks/" + f[:-3])
+			mod = imp.load_module(f[:-3], file, pathname, desc)
+
+			if "hooks" not in dir(mod):
+				del mod
+				continue
+			self._load_hook(mod)
+
 
 	def run_mod(self, name, args):
 		if name not in self.modules:
@@ -120,7 +141,6 @@ class Medman():
 
 
 	def load(self, name):
-		global modules
 	
 		file, pathname, desc = imp.find_module(modpath + "/" + name)
 		mod = imp.load_module(name, file, pathname, desc)
@@ -159,4 +179,5 @@ if __name__ == "__main__":
 		exit(0)
 	med = Medman()
 	med.load_config()
+	med.load_hooks()
 	main(med)
