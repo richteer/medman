@@ -141,7 +141,7 @@ class Medman():
 		# TODO: Hooks, here
 
 		if categories != "" and categories[-1] != "/":
-			categories.append("/") 
+			categories += "/"
 
 		self.index_add(name, categories)
 		
