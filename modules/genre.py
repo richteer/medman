@@ -14,7 +14,7 @@ def handle_name(med, name, genres):
 	if "genres" not in data.keys():
 		data["genres"] = []
 
-	add = [g[1:] for g in genres if g.startswith("+")]
+	add = [g[1:] for g in genres if g.startswith("+") and g[1:] not in data["genres"]]
 	delete = [g[1:] for g in genres if g.startswith("-")]
 
 	data["genres"] = [g for g in data["genres"] + add if g not in delete]
