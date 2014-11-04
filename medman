@@ -16,6 +16,7 @@ class Medman():
 	hooks = {}
 	modules = {}
 
+	# Call all the functions associated with the particular hook string
 	def call_hooks(self, hookname, args=[]):
 		log.debug("Calling hook '{}'".format(hookname))
 		if hookname not in self.hooks:
